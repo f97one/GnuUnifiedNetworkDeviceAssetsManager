@@ -1,6 +1,10 @@
 package net.formula97.webapps.entity
 
 import net.formula97.webapps.entity.annotation.FieldMapDefinition
+import kotlin.reflect.KClass
+import kotlin.reflect.full.findAnnotation
+import kotlin.reflect.full.memberProperties
+import kotlin.reflect.jvm.isAccessible
 
 abstract class BaseEntity {
 
@@ -36,18 +40,21 @@ abstract class BaseEntity {
      * @param extractPrimaryKeyOnly true if limit to primary key values only, false otherwise, default is false
      * @return pair of bind field and its value
      */
-    fun getBindValues(bindPrefix: Char = ':', extractPrimaryKeyOnly: Boolean = false): Map<String, Class<*>> {
-        val fieldMap: MutableMap<String, Class<*>> = mutableMapOf()
-        val fields = this.javaClass.declaredFields
-        for (f in fields) {
-            f.isAccessible = true
+    fun getBindValues(bindPrefix: Char = ':', extractPrimaryKeyOnly: Boolean = false): Map<String, KClass<*>?> {
+        val fieldMap = mutableMapOf<String, KClass<*>?>()
+        this::class.memberProperties.filter { p ->
+            p.isAccessible = true
+            val mapDef: FieldMapDefinition? = p.findAnnotation()
+            return@filter mapDef != null
+        }.filter { p ->
+            p.isAccessible = true
+            val mapDef: FieldMapDefinition? = p.findAnnotation()
+            return@filter !(extractPrimaryKeyOnly && !mapDef!!.isPrimaryKey)
+        }.forEach { p ->
+            p.isAccessible = true
+            val mapDef: FieldMapDefinition? = p.findAnnotation()
 
-            val mapDef: FieldMapDefinition = f.getAnnotation(FieldMapDefinition::class.java)
-            if (extractPrimaryKeyOnly && !mapDef.isPrimaryKey) {
-                continue
-            }
-
-            fieldMap["${bindPrefix}${f.name}"] = f.get(this) as Class<*>
+            fieldMap["${bindPrefix}${p.name}"] = if (p.getter.call(this) == null) null else p.getter.call(this) as KClass<*>
         }
 
         return fieldMap
