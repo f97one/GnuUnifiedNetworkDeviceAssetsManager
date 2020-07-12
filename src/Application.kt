@@ -29,7 +29,7 @@ fun main(args: Array<String>): Unit = EngineMain.main(args)
 @JvmOverloads
 fun Application.module(testing: Boolean = false) {
     val conf = environment.config
-    initDatabase(DbConnectionConfig.fromConfig(conf))
+    initDatabase(DbConnectionConfig.fromConfig(conf, testing))
 
     install(Thymeleaf) {
         setTemplateResolver(ClassLoaderTemplateResolver().apply {
