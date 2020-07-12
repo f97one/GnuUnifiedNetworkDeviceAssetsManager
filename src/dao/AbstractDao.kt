@@ -119,7 +119,7 @@ abstract class AbstractDao<T: BaseEntity>(dataSource: DataSource) {
         }
     }
 
-    internal fun primaryKeySelectionClause(clz: Class<T>): String {
+    internal fun primaryKeySelectionClause(clz: Class<T>, withBindChar: Char = ':'): String {
         val entity = clz.getDeclaredConstructor().newInstance()
 
         val fields = entity.javaClass.declaredFields
@@ -141,7 +141,7 @@ abstract class AbstractDao<T: BaseEntity>(dataSource: DataSource) {
                 b.append(" and ")
             }
 
-            b.append(mapDef.columnName).append(" = :").append(f.name)
+            b.append(mapDef.columnName).append(" = ").append(withBindChar).append(f.name)
 
             hasMany = true
         }
@@ -208,18 +208,19 @@ abstract class AbstractDao<T: BaseEntity>(dataSource: DataSource) {
      * @param entity entity to update
      * @return result object of SQL execution
      */
-    fun updateOneByPK(entity: T): ExecutionResult {
+    fun updateOneByPK(entity: T, withBindChar: Char = ':'): ExecutionResult {
         val b1 = StringBuilder()
         b1.append("update ").append(mappedTableName(entity.javaClass))
-            .append("set ")
-        for ((k, v) in entity.getDefaultMapper()) {
-            b1.append(v).append(" = ").append(k).append(",")
-        }
-        val tmp = b1.toString()
-        val b2 = StringBuilder(tmp.replaceAfterLast(",", ""))
-        b2.append(primaryKeySelectionClause(entity.javaClass))
+            .append(" set ")
 
-        return performUpdate(b2.toString(), entity, false)
+        val bindList = mutableListOf<String>()
+        for((k, v) in entity.getDefaultMapper()) {
+            bindList.add("$k = ${withBindChar}${v}")
+        }
+        b1.append(bindList.joinToString(separator = ", "))
+        b1.append(primaryKeySelectionClause(entity.javaClass))
+
+        return performUpdate(b1.toString(), entity, false)
     }
 
     /**

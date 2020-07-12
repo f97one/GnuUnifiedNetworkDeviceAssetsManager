@@ -7,6 +7,7 @@ import org.flywaydb.core.Flyway
 import org.junit.After
 import org.junit.Before
 import java.sql.Date
+import java.text.SimpleDateFormat
 import java.time.Instant
 import javax.sql.DataSource
 import kotlin.test.Test
@@ -39,9 +40,13 @@ class AppUserDaoTest {
         val exec = GenericSqlExecutor(ds)
 
         val delAll = "delete from app_user"
-        exec.executeRawSql(delAll)
-        val resetSeq = "select setval ('app_user_user_id_seq', 1, false)"
-        exec.executeRawSql(resetSeq)
+        val result1 = exec.executeRawSql(delAll)
+        println("delete successful : ${result1.success}")
+        println("stack trace : ${result1.causedException}")
+        val resetSeq = "alter sequence app_user_user_id_seq restart with 1"
+        val result2 = exec.executeRawSql(resetSeq)
+        println("reset sequence successful : ${result2.success}")
+        println("stack trace : ${result2.causedException}")
     }
 
     @Test
@@ -102,5 +107,38 @@ class AppUserDaoTest {
         assertEquals(curTime, u.passwdLastModified)
         assertNull(u.joinedOrgId)
         assertNull(u.roleId)
+    }
+
+    @Test
+    fun updatesExistingUser() {
+        // データを追加
+        val stmt = """
+            insert into app_user (username, password, display_name, email, passwd_last_modified, joined_org_id, role_id)
+            values ('testsan2', 'P@ssw0rd', 'てすとさん２', 'testsan2@example.com', '2020-07-12 19:37:00', null, null)
+        """.trimIndent()
+        GenericSqlExecutor(ds).executeRawSql(stmt)
+        val appUser = AppUser(userId = 1)
+        val dao = AppUserDao()
+        val userOpt1 = dao.findByKey(appUser)
+        assertTrue(userOpt1.isPresent)
+
+        val user = userOpt1.get()
+        user.displayName = "てすとさん２を変更"
+        val result = dao.updateOneByPK(user)
+        assertTrue(result.success)
+        assertEquals(1, result.affectedRows)
+
+        val userOpt2 = dao.findByKey(appUser)
+        assertTrue(userOpt2.isPresent)
+        val actUser = userOpt2.get()
+
+        assertEquals(1, actUser.userId)
+        assertEquals("testsan2", actUser.username)
+        assertEquals("P@ssw0rd", actUser.password)
+        assertEquals("てすとさん２を変更", actUser.displayName)
+        assertEquals("testsan2@example.com", actUser.email)
+        assertEquals(SimpleDateFormat("yyyy-MM-dd HH:mm:ss").parse("2020-07-12 19:37:00"), actUser.passwdLastModified)
+        assertNull(actUser.joinedOrgId)
+        assertNull(actUser.roleId)
     }
 }
