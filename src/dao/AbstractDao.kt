@@ -1,6 +1,8 @@
 package net.formula97.webapps.dao
 
 import net.formula97.webapps.dao.config.ExecutionResult
+import net.formula97.webapps.dao.converter.LocalDateTimeConverter
+import net.formula97.webapps.dao.converter.ZonedDateTimeConverter
 import net.formula97.webapps.entity.BaseEntity
 import net.formula97.webapps.entity.annotation.FieldMapDefinition
 import net.formula97.webapps.entity.annotation.TableNameDefinition
@@ -8,9 +10,11 @@ import org.sql2o.Sql2o
 import org.sql2o.Sql2oException
 import org.sql2o.converters.Converter
 import org.sql2o.quirks.PostgresQuirks
+import java.time.LocalDateTime
+import java.time.ZoneId
+import java.time.ZonedDateTime
 import java.util.*
 import javax.sql.DataSource
-import kotlin.streams.toList
 
 /**
  * base DAO class.
@@ -21,6 +25,8 @@ abstract class AbstractDao<T: BaseEntity>(dataSource: DataSource) {
     init {
         // todo コンバータ定義をここに書く
         val converterMap: MutableMap<Class<*>, Converter<*>> = mutableMapOf()
+        converterMap[LocalDateTime::class.java] = LocalDateTimeConverter()
+        converterMap[ZonedDateTime::class.java] = ZonedDateTimeConverter(ZoneId.systemDefault())
 
         sql2o = Sql2o(dataSource, PostgresQuirks(converterMap))
     }
@@ -33,12 +39,11 @@ abstract class AbstractDao<T: BaseEntity>(dataSource: DataSource) {
      * @param ignoreForInsertion true if the AUTO_INCREMENT column should be ignored when INSERT statement is built, false otherwise, default is false
      * @return comma-separated column names from Annotation FieldMapDefinition
      */
-    fun defaultSelectionColumn(clz: Class<T>, withBindChar: Boolean = false, ignoreForInsertion: Boolean = false): String {
+    fun defaultSelectionColumn(clz: Class<T>, ignoreForInsertion: Boolean = false, binderMode: Boolean = false, withBindChar: Char = ':'): String {
         val entity = clz.getDeclaredConstructor().newInstance()
 
-        val fields = entity.javaClass.declaredFields
         val lst = mutableListOf<String>()
-        for (f in fields) {
+        for (f in entity.javaClass.declaredFields) {
             val mapDef: FieldMapDefinition = f.getAnnotation(FieldMapDefinition::class.java)
             if (mapDef.columnName.trim().isEmpty()) {
                 throw IllegalArgumentException("attribute columnName must not be empty : ${f.name}")
@@ -46,15 +51,12 @@ abstract class AbstractDao<T: BaseEntity>(dataSource: DataSource) {
             if (ignoreForInsertion && mapDef.ignoreWhenInsertion) {
                 continue
             }
-            lst.add(mapDef.columnName)
+
+            val cn: String = if (binderMode) "${withBindChar}${f.name}" else mapDef.columnName
+            lst.add(cn)
         }
 
-        return if (withBindChar) {
-            val lst2 = lst.stream().map { r -> ":$r" }.toList()
-            lst2.joinToString(separator = ", ")
-        } else {
-            lst.joinToString(separator = ", ")
-        }
+        return lst.joinToString(separator = ", ")
     }
 
     /**
@@ -102,7 +104,7 @@ abstract class AbstractDao<T: BaseEntity>(dataSource: DataSource) {
         return try {
             val q = tran.createQuery(stmt)
             q.columnMappings = entity.getDefaultMapper(ignoreForInsertion)
-            for ((k, v) in entity.getBindValues()) {
+            for ((k, v) in entity.getBindValues(ignoreForInsertion = ignoreForInsertion)) {
                 q.addParameter(k, v)
             }
             val rows = q.executeUpdate().result
@@ -158,8 +160,7 @@ abstract class AbstractDao<T: BaseEntity>(dataSource: DataSource) {
         b.append("insert into ").append(mappedTableName(entity.javaClass))
             .append(" (").append(defaultSelectionColumn(entity.javaClass, ignoreForInsertion = true)).append(") ")
             .append("values (").append(defaultSelectionColumn(entity.javaClass,
-                withBindChar = true,
-                ignoreForInsertion = true
+                ignoreForInsertion = true, binderMode = true
             )).append(")")
 
         return performUpdate(b.toString(), entity, true)
