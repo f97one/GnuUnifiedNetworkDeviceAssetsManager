@@ -18,7 +18,7 @@ drop table if exists device_survey_hist cascade;
 create table device_survey_hist
 (
     survey_id      uuid                                               not null,
-    surveyed_at    timestamp with time zone default current_timestamp not null,
+    surveyed_at    timestamp without time zone default current_timestamp not null,
     device_id      uuid,
     hostname       character varying(64),
     device_name    character varying(200),
@@ -68,7 +68,7 @@ create table app_user
     password             character varying(128) not null,
     display_name         character varying(128),
     email                character varying(128),
-    passwd_last_modified timestamp with time zone default current_timestamp,
+    passwd_last_modified timestamp without time zone default current_timestamp,
     joined_org_id        integer,
     role_id              integer,
     constraint app_user_PKC primary key (user_id)

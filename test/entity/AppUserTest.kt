@@ -4,7 +4,8 @@ import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.Before
-import java.time.LocalDateTime
+import java.sql.Date
+import java.time.Instant
 import kotlin.test.Test
 
 class AppUserTest {
@@ -19,7 +20,7 @@ class AppUserTest {
 
     @Test
     fun getsBindMap1() {
-        val curTime = LocalDateTime.now()
+        val curTime = Date.from(Instant.now())
         val appUser = AppUser(
             username = "testsan",
             password = "password",
@@ -44,7 +45,7 @@ class AppUserTest {
 
     @Test
     fun getsBindMap2() {
-        val curTime = LocalDateTime.now()
+        val curTime = Date.from(Instant.now())
         val appUser = AppUser(
             username = "testsan",
             password = "password",
@@ -69,7 +70,7 @@ class AppUserTest {
 
     @Test
     fun getsBindMap3() {
-        val curTime = LocalDateTime.now()
+        val curTime = Date.from(Instant.now())
         val appUser = AppUser(
             username = "testsan",
             password = "password",
@@ -87,7 +88,7 @@ class AppUserTest {
 
     @Test
     fun getDefaultFieldMapper1() {
-        val curTime = LocalDateTime.now()
+        val curTime = Date.from(Instant.now())
         val appUser = AppUser(
             username = "testsan",
             password = "password",
@@ -112,7 +113,7 @@ class AppUserTest {
 
     @Test
     fun getDefaultFieldMapper2() {
-        val curTime = LocalDateTime.now()
+        val curTime = Date.from(Instant.now())
         val appUser = AppUser(
             username = "testsan",
             password = "password",

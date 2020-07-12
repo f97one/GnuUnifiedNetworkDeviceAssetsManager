@@ -2,7 +2,7 @@ package net.formula97.webapps.entity
 
 import net.formula97.webapps.entity.annotation.FieldMapDefinition
 import net.formula97.webapps.entity.annotation.TableNameDefinition
-import java.time.LocalDateTime
+import java.util.Date
 
 /**
  * users
@@ -38,7 +38,7 @@ data class AppUser(
      * Date and time when the password was last updated
      */
     @FieldMapDefinition(columnName = "passwd_last_modified")
-    var passwdLastModified: LocalDateTime? = null,
+    var passwdLastModified: Date? = null,
     /**
      * ID of the organization to which user belongs
      */
