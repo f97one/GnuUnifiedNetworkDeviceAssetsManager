@@ -1,12 +1,11 @@
 package net.formula97.webapps.entity
 
-import net.formula97.webapps.entity.AppUser
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.Before
 import java.time.LocalDateTime
-import kotlin.test.*
+import kotlin.test.Test
 
 class AppUserTest {
 
