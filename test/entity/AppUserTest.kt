@@ -33,13 +33,13 @@ class AppUserTest {
         val map = appUser.getBindValues()
         assertEquals(8, map.size)
         assertNull(map[":userId"])
-        assertEquals("testsan", map[":username"])
-        assertEquals("password", map[":password"])
-        assertEquals("てすとさん", map[":displayName"])
-        assertEquals("testsan@example.com", map[":email"])
-        assertEquals(curTime, map[":passwdLastModified"])
-        assertNull(map[":joinedOrgId"])
-        assertNull(map[":roleId"])
+        assertEquals("testsan", map["username"])
+        assertEquals("password", map["password"])
+        assertEquals("てすとさん", map["displayName"])
+        assertEquals("testsan@example.com", map["email"])
+        assertEquals(curTime, map["passwdLastModified"])
+        assertNull(map["joinedOrgId"])
+        assertNull(map["roleId"])
     }
 
     @Test
@@ -58,13 +58,13 @@ class AppUserTest {
         val map = appUser.getBindValues(ignoreForInsertion = true)
         assertEquals(7, map.size)
 //        assertNull(map[":userId"])
-        assertEquals("testsan", map[":username"])
-        assertEquals("password", map[":password"])
-        assertEquals("てすとさん", map[":displayName"])
-        assertEquals("testsan@example.com", map[":email"])
-        assertEquals(curTime, map[":passwdLastModified"])
-        assertNull(map[":joinedOrgId"])
-        assertNull(map[":roleId"])
+        assertEquals("testsan", map["username"])
+        assertEquals("password", map["password"])
+        assertEquals("てすとさん", map["displayName"])
+        assertEquals("testsan@example.com", map["email"])
+        assertEquals(curTime, map["passwdLastModified"])
+        assertNull(map["joinedOrgId"])
+        assertNull(map["roleId"])
     }
 
     @Test
@@ -82,39 +82,7 @@ class AppUserTest {
 
         val map = appUser.getBindValues(extractPrimaryKeyOnly = true)
         assertEquals(1, map.size)
-        assertNull(map[":userId"])
-//        assertEquals("testsan", map[":username"])
-//        assertEquals("password", map[":password"])
-//        assertEquals("てすとさん", map[":displayName"])
-//        assertEquals("testsan@example.com", map[":email"])
-//        assertEquals(curTime, map[":passwdLastModified"])
-//        assertNull(map[":joinedOrgId"])
-//        assertNull(map[":roleId"])
-    }
-
-    @Test
-    fun getsBindMap4() {
-        val curTime = LocalDateTime.now()
-        val appUser = AppUser(
-            username = "testsan",
-            password = "password",
-            displayName = "てすとさん",
-            email = "testsan@example.com",
-            passwdLastModified = curTime,
-            joinedOrgId = null,
-            roleId = null
-        )
-
-        val map = appUser.getBindValues(bindPrefix = '$')
-        assertEquals(8, map.size)
-        assertNull(map["\$userId"])
-        assertEquals("testsan", map["\$username"])
-        assertEquals("password", map["\$password"])
-        assertEquals("てすとさん", map["\$displayName"])
-        assertEquals("testsan@example.com", map["\$email"])
-        assertEquals(curTime, map["\$passwdLastModified"])
-        assertNull(map["\$joinedOrgId"])
-        assertNull(map["\$roleId"])
+        assertNull(map["userId"])
     }
 
     @Test
@@ -132,14 +100,14 @@ class AppUserTest {
         val map = appUser.getDefaultMapper()
         assertEquals(8, map.size)
 
-        assertEquals("user_id", map["userId"])
+        assertEquals("userId", map["user_id"])
         assertEquals("username", map["username"])
         assertEquals("password", map["password"])
-        assertEquals("display_name", map["displayName"])
+        assertEquals("displayName", map["display_name"])
         assertEquals("email", map["email"])
-        assertEquals("passwd_last_modified", map["passwdLastModified"])
-        assertEquals("joined_org_id", map["joinedOrgId"])
-        assertEquals("role_id", map["roleId"])
+        assertEquals("passwdLastModified", map["passwd_last_modified"])
+        assertEquals("joinedOrgId", map["joined_org_id"])
+        assertEquals("roleId", map["role_id"])
     }
 
     @Test
@@ -160,10 +128,10 @@ class AppUserTest {
 //        assertEquals("user_id", map["userId"])
         assertEquals("username", map["username"])
         assertEquals("password", map["password"])
-        assertEquals("display_name", map["displayName"])
+        assertEquals("displayName", map["display_name"])
         assertEquals("email", map["email"])
-        assertEquals("passwd_last_modified", map["passwdLastModified"])
-        assertEquals("joined_org_id", map["joinedOrgId"])
-        assertEquals("role_id", map["roleId"])
+        assertEquals("passwdLastModified", map["passwd_last_modified"])
+        assertEquals("joinedOrgId", map["joined_org_id"])
+        assertEquals("roleId", map["role_id"])
     }
 }

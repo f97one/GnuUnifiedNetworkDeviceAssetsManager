@@ -23,7 +23,7 @@ abstract class BaseEntity {
                 // skip when both flag is raised
                 continue
             }
-            fieldMap[f.name] = mapDef.columnName
+            fieldMap[mapDef.columnName] = f.name
         }
 
         return fieldMap
@@ -32,11 +32,11 @@ abstract class BaseEntity {
     /**
      * gets bind values pair as Dictionary.
      *
-     * @param bindPrefix prefix of bind field, default is `:`
      * @param extractPrimaryKeyOnly true if limit to primary key values only, false otherwise, default is false
+     * @param ignoreForInsertion true if the AUTO_INCREMENT column should be ignored when INSERT statement is built, false otherwise
      * @return pair of bind field and its value
      */
-    fun getBindValues(bindPrefix: Char = ':', extractPrimaryKeyOnly: Boolean = false, ignoreForInsertion: Boolean = false): Map<String, Any?> {
+    fun getBindValues(extractPrimaryKeyOnly: Boolean = false, ignoreForInsertion: Boolean = false): Map<String, Any?> {
         val fieldMap = mutableMapOf<String, Any?>()
 
         for (f in this::class.java.declaredFields) {
@@ -48,9 +48,8 @@ abstract class BaseEntity {
             if (ignoreForInsertion && mapDef.ignoreWhenInsertion) {
                 continue
             }
-            val v = f.get(this)
 
-            fieldMap["${bindPrefix}${f.name}"] = v
+            fieldMap[f.name] = f.get(this)
         }
 
         return fieldMap
