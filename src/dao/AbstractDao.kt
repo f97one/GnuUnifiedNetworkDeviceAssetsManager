@@ -99,13 +99,19 @@ abstract class AbstractDao<T: BaseEntity>(dataSource: DataSource) {
      * @param entity to INSERT/UPDATE/DELETE
      * @param ignoreForInsertion true if containing columns (such as AUTO INCREMENT) that want to ignore, false otherwise
      */
-    internal fun performUpdate(stmt: String, entity: T, ignoreForInsertion: Boolean): ExecutionResult {
+    internal fun performUpdate(stmt: String, entity: T, ignoreForInsertion: Boolean, extractPrimaryKeyOnly: Boolean = false): ExecutionResult {
         val tran = sql2o.beginTransaction()
         return try {
             val q = tran.createQuery(stmt)
             q.columnMappings = entity.getDefaultMapper(ignoreForInsertion)
-            for ((k, v) in entity.getBindValues(ignoreForInsertion = ignoreForInsertion)) {
-                q.addParameter(k, v)
+            if (extractPrimaryKeyOnly) {
+                for ((k, v) in entity.getBindValues(extractPrimaryKeyOnly = true)) {
+                    q.addParameter(k, v)
+                }
+            } else {
+                for ((k, v) in entity.getBindValues(ignoreForInsertion = ignoreForInsertion)) {
+                    q.addParameter(k, v)
+                }
             }
             val rows = q.executeUpdate().result
 
@@ -234,7 +240,7 @@ abstract class AbstractDao<T: BaseEntity>(dataSource: DataSource) {
         b.append("delete from ").append(mappedTableName(entity.javaClass))
             .append(primaryKeySelectionClause(entity.javaClass))
 
-        return performUpdate(b.toString(), entity, false)
+        return performUpdate(b.toString(), entity, ignoreForInsertion = true, extractPrimaryKeyOnly = true)
     }
 
     /**
@@ -246,6 +252,16 @@ abstract class AbstractDao<T: BaseEntity>(dataSource: DataSource) {
         val b = StringBuilder()
         b.append("delete from ").append(mappedTableName(clz))
 
-        return performUpdate(b.toString(), clz.getDeclaredConstructor().newInstance(), false)
+        val tran = sql2o.beginTransaction()
+        return try {
+            val rows = tran.createQuery(b.toString()).executeUpdate().result
+
+            tran.commit()
+            ExecutionResult(success = true, affectedRows = rows)
+        } catch (e: Sql2oException) {
+            e.printStackTrace()
+            tran.rollback()
+            ExecutionResult(success = false, causedException = e)
+        }
     }
 }

@@ -141,4 +141,58 @@ class AppUserDaoTest {
         assertNull(actUser.joinedOrgId)
         assertNull(actUser.roleId)
     }
+
+    @Test
+    fun deletesExistingUserById() {
+        // データを追加
+        val s1 = """
+            insert into app_user (username, password, display_name, email, passwd_last_modified, joined_org_id, role_id)
+            values ('testsan2', 'P@ssw0rd', 'てすとさん２', 'testsan2@example.com', '2020-07-12 19:37:00', null, null)
+        """.trimIndent()
+        val s2 = """
+            insert into app_user (username, password, display_name, email, passwd_last_modified, joined_org_id, role_id)
+            values ('testsan', 'P@ssw0rd', 'てすとさん', 'testsan@example.com', '2020-07-12 21:35:00', null, null)
+        """.trimIndent()
+        val fix = listOf(s1, s2)
+        GenericSqlExecutor(ds).executeRawSql(fix)
+        val appUser = AppUser(userId = 2)
+        val dao = AppUserDao()
+        val result = dao.deleteOneByPK(appUser)
+        assertTrue(result.success)
+
+        val lst = dao.findAll(AppUser::class.java)
+        assertEquals(1, lst.size)
+        val actUser = lst[0]
+
+        assertEquals(1, actUser.userId)
+        assertEquals("testsan2", actUser.username)
+        assertEquals("P@ssw0rd", actUser.password)
+        assertEquals("てすとさん２", actUser.displayName)
+        assertEquals("testsan2@example.com", actUser.email)
+        assertEquals(SimpleDateFormat("yyyy-MM-dd HH:mm:ss").parse("2020-07-12 19:37:00"), actUser.passwdLastModified)
+        assertNull(actUser.joinedOrgId)
+        assertNull(actUser.roleId)
+    }
+
+    @Test
+    fun deletesAllRecords() {
+        // データを追加
+        val s1 = """
+            insert into app_user (username, password, display_name, email, passwd_last_modified, joined_org_id, role_id)
+            values ('testsan2', 'P@ssw0rd', 'てすとさん２', 'testsan2@example.com', '2020-07-12 19:37:00', null, null)
+        """.trimIndent()
+        val s2 = """
+            insert into app_user (username, password, display_name, email, passwd_last_modified, joined_org_id, role_id)
+            values ('testsan', 'P@ssw0rd', 'てすとさん', 'testsan@example.com', '2020-07-12 21:35:00', null, null)
+        """.trimIndent()
+        val fix = listOf(s1, s2)
+        GenericSqlExecutor(ds).executeRawSql(fix)
+
+        val result = AppUserDao().deleteAll(AppUser::class.java)
+        assertTrue(result.success)
+        assertEquals(2, result.affectedRows)
+
+        val lst = AppUserDao().findAll(AppUser::class.java)
+        assertEquals(0, lst.size)
+    }
 }
