@@ -11,6 +11,7 @@ val h2_version: String by project
 val hikari_version: String by project
 val sql2o_version: String by project
 val jbcrypt_version: String by project
+val junit_version: String by project
 
 plugins {
     application
@@ -42,7 +43,10 @@ dependencies {
     implementation("io.ktor:ktor-server-sessions:$ktor_version")
     implementation("io.ktor:ktor-auth:$ktor_version")
     implementation("io.ktor:ktor-jackson:$ktor_version")
+
     testImplementation("io.ktor:ktor-server-tests:$ktor_version")
+    testImplementation("org.junit.jupiter:junit-jupiter-api:$junit_version")
+    testImplementation("org.junit.jupiter:junit-jupiter-engine:$junit_version")
 
     implementation("org.mindrot:jbcrypt:$jbcrypt_version")
 
