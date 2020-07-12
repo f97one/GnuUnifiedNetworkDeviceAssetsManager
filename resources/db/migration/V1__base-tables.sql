@@ -60,10 +60,12 @@ create table user_authority
 --* BackupToTempTable
 drop table if exists app_user cascade;
 
+drop sequence if exists app_user_user_id_seq;
+create sequence app_user_user_id_seq;
 --* RestoreFromTempTable
 create table app_user
 (
-    user_id              serial                 not null,
+    user_id              integer                not null default nextval('app_user_user_id_seq'),
     username             character varying(32)  not null,
     password             character varying(128) not null,
     display_name         character varying(128),
@@ -78,10 +80,12 @@ create table app_user
 --* BackupToTempTable
 drop table if exists authority cascade;
 
+drop sequence if exists authority_authority_id_seq;
+create sequence authority_authority_id_seq;
 --* RestoreFromTempTable
 create table authority
 (
-    authority_id   serial                not null,
+    authority_id   integer               not null default nextval('authority_authority_id_seq'),
     authority_name character varying(16) not null,
     admin_role     boolean default false,
     constraint authority_PKC primary key (authority_id)
@@ -112,10 +116,12 @@ create table device
 --* BackupToTempTable
 drop table if exists operating_system cascade;
 
+drop sequence if exists operating_system_os_id_seq;
+create sequence operating_system_os_id_seq;
 --* RestoreFromTempTable
 create table operating_system
 (
-    os_id   serial                not null,
+    os_id   integer               not null default nextval('operating_system_os_id_seq'),
     os_name character varying(32) not null,
     constraint operating_system_PKC primary key (os_id)
 );
@@ -124,10 +130,12 @@ create table operating_system
 --* BackupToTempTable
 drop table if exists organization cascade;
 
+drop sequence if exists organization_org_id_seq;
+create sequence organization_org_id_seq;
 --* RestoreFromTempTable
 create table organization
 (
-    org_id          serial not null,
+    org_id          integer not null default nextval('organization_org_id_seq'),
     ancestor_org_id integer,
     org_name        character varying(32),
     constraint organization_PKC primary key (org_id)
@@ -137,10 +145,12 @@ create table organization
 --* BackupToTempTable
 drop table if exists role cascade;
 
+drop sequence if exists role_role_id_seq;
+create sequence role_role_id_seq;
 --* RestoreFromTempTable
 create table role
 (
-    role_id   serial not null,
+    role_id   integer not null default nextval('role_role_id_seq'),
     role_name character varying(16),
     manager   boolean default false,
     constraint role_PKC primary key (role_id)
