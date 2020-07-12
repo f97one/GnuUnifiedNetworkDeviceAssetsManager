@@ -1,10 +1,6 @@
 package net.formula97.webapps.entity
 
 import net.formula97.webapps.entity.annotation.FieldMapDefinition
-import kotlin.reflect.KClass
-import kotlin.reflect.full.findAnnotation
-import kotlin.reflect.full.memberProperties
-import kotlin.reflect.jvm.isAccessible
 
 abstract class BaseEntity {
 
@@ -40,21 +36,21 @@ abstract class BaseEntity {
      * @param extractPrimaryKeyOnly true if limit to primary key values only, false otherwise, default is false
      * @return pair of bind field and its value
      */
-    fun getBindValues(bindPrefix: Char = ':', extractPrimaryKeyOnly: Boolean = false): Map<String, KClass<*>?> {
-        val fieldMap = mutableMapOf<String, KClass<*>?>()
-        this::class.memberProperties.filter { p ->
-            p.isAccessible = true
-            val mapDef: FieldMapDefinition? = p.findAnnotation()
-            return@filter mapDef != null
-        }.filter { p ->
-            p.isAccessible = true
-            val mapDef: FieldMapDefinition? = p.findAnnotation()
-            return@filter !(extractPrimaryKeyOnly && !mapDef!!.isPrimaryKey)
-        }.forEach { p ->
-            p.isAccessible = true
-            val mapDef: FieldMapDefinition? = p.findAnnotation()
+    fun getBindValues(bindPrefix: Char = ':', extractPrimaryKeyOnly: Boolean = false, ignoreForInsertion: Boolean = false): Map<String, Any?> {
+        val fieldMap = mutableMapOf<String, Any?>()
 
-            fieldMap["${bindPrefix}${p.name}"] = if (p.getter.call(this) == null) null else p.getter.call(this) as KClass<*>
+        for (f in this::class.java.declaredFields) {
+            f.isAccessible = true
+            val mapDef = f.getAnnotation(FieldMapDefinition::class.java) as FieldMapDefinition ?: continue
+            if (extractPrimaryKeyOnly && !mapDef.isPrimaryKey) {
+                continue
+            }
+            if (ignoreForInsertion && mapDef.ignoreWhenInsertion) {
+                continue
+            }
+            val v = f.get(this)
+
+            fieldMap["${bindPrefix}${f.name}"] = v
         }
 
         return fieldMap
