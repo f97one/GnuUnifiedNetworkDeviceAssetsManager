@@ -111,6 +111,7 @@ abstract class AbstractDao<T: BaseEntity>(dataSource: DataSource) {
 
             ExecutionResult(success = true, affectedRows = rows)
         } catch (e: Sql2oException) {
+            e.printStackTrace()
             tran.rollback()
             ExecutionResult(success = false, causedException = e)
         }
@@ -146,6 +147,12 @@ abstract class AbstractDao<T: BaseEntity>(dataSource: DataSource) {
         return b.toString()
     }
 
+    /**
+     * creates new record.
+     *
+     * @param entity entity to insert
+     * @return result object of SQL execution
+     */
     fun createOne(entity: T): ExecutionResult {
         val b = StringBuilder()
         b.append("insert into ").append(mappedTableName(entity.javaClass))
@@ -158,6 +165,12 @@ abstract class AbstractDao<T: BaseEntity>(dataSource: DataSource) {
         return performUpdate(b.toString(), entity, true)
     }
 
+    /**
+     * finds one record by primary key search.
+     *
+     * @param entity entity for finding by primary key
+     * @return result entity wrapped in java.util.Optional, if no result, returns Optional.empty()
+     */
     fun fundByKey(entity: T): Optional<T> {
         val b = StringBuilder(basicSelectStatement(entity.javaClass)).append(primaryKeySelectionClause(entity.javaClass))
 
@@ -172,6 +185,11 @@ abstract class AbstractDao<T: BaseEntity>(dataSource: DataSource) {
         return Optional.of(ret)
     }
 
+    /**
+     * finds all records.
+     *
+     * @return list of all records. if no record found, returns empty list.
+     */
     fun findAll(clz: Class<T>): List<T> {
         val conn = sql2o.open()
 
@@ -183,7 +201,13 @@ abstract class AbstractDao<T: BaseEntity>(dataSource: DataSource) {
         return q.executeAndFetch(clz)
     }
 
-    fun updateOne(entity: T): ExecutionResult {
+    /**
+     * updates existing record by passed primary key condition.
+     *
+     * @param entity entity to update
+     * @return result object of SQL execution
+     */
+    fun updateOneByPK(entity: T): ExecutionResult {
         val b1 = StringBuilder()
         b1.append("update ").append(mappedTableName(entity.javaClass))
             .append("set ")
@@ -197,11 +221,29 @@ abstract class AbstractDao<T: BaseEntity>(dataSource: DataSource) {
         return performUpdate(b2.toString(), entity, false)
     }
 
-    fun deleteOne(entity: T): ExecutionResult {
+    /**
+     * deletes existing records by passed primary key condition.
+     *
+     * @param entity entity to delete
+     * @return result object of SQL execution
+     */
+    fun deleteOneByPK(entity: T): ExecutionResult {
         val b = StringBuilder()
         b.append("delete from ").append(mappedTableName(entity.javaClass))
             .append(primaryKeySelectionClause(entity.javaClass))
 
         return performUpdate(b.toString(), entity, false)
+    }
+
+    /**
+     * deletes all existing records UNCONDITIONALLY.
+     *
+     * @return result object of SQL execution
+     */
+    fun deleteAll(clz: Class<T>): ExecutionResult {
+        val b = StringBuilder()
+        b.append("delete from ").append(mappedTableName(clz))
+
+        return performUpdate(b.toString(), clz.getDeclaredConstructor().newInstance(), false)
     }
 }

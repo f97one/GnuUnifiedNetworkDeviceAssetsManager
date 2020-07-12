@@ -29,14 +29,27 @@ data class DbConnectionConfig(
          * creates instance from Application config
          *
          * @param conf ApplicationConfig from static configuration file
+         * @param withTestEnv if true, force database connection setting using with H2 (for testing)
          * @return configured instance
          */
         @KtorExperimentalAPI
-        fun fromConfig(conf: ApplicationConfig): DbConnectionConfig {
-            val driverClassName = conf.propertyOrNull("settings.db.driverClassName")?.getString() ?: org.postgresql.Driver::class.java.name
-            val jdbcUrl = conf.propertyOrNull("settings.db.jdbcUrl")?.getString() ?: "jdbc:postgresql://localhost:5432/klassify_db"
-            val dbUser = conf.propertyOrNull("settings.db.dbUser")?.getString() ?: "klassify_user"
-            val dbPasswd = conf.propertyOrNull("setings.db.dbPasswd")?.getString() ?: "klassify"
+        fun fromConfig(conf: ApplicationConfig, withTestEnv: Boolean = false): DbConnectionConfig {
+            val driverClassName: String
+            val jdbcUrl: String
+            val dbUser: String
+            val dbPasswd: String
+
+            if (withTestEnv) {
+                driverClassName = org.h2.Driver::class.java.name
+                jdbcUrl = "jdbc:h2:mem:g-u-n-d-a-m-db;MODE=PostgreSQL;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE"
+                dbUser = "SA"
+                dbPasswd = ""
+            } else {
+                driverClassName = conf.propertyOrNull("settings.db.driverClassName")?.getString() ?: org.postgresql.Driver::class.java.name
+                jdbcUrl = conf.propertyOrNull("settings.db.jdbcUrl")?.getString() ?: "jdbc:postgresql://localhost:5432/klassify_db"
+                dbUser = conf.propertyOrNull("settings.db.dbUser")?.getString() ?: "klassify_user"
+                dbPasswd = conf.propertyOrNull("setings.db.dbPasswd")?.getString() ?: "klassify"
+            }
 
             return DbConnectionConfig(driverClassName, jdbcUrl, dbUser, dbPasswd)
         }
