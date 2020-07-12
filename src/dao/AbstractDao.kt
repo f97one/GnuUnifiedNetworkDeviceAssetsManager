@@ -172,7 +172,7 @@ abstract class AbstractDao<T: BaseEntity>(dataSource: DataSource) {
      * @param entity entity for finding by primary key
      * @return result entity wrapped in java.util.Optional, if no result, returns Optional.empty()
      */
-    fun fundByKey(entity: T): Optional<T> {
+    fun findByKey(entity: T): Optional<T> {
         val b = StringBuilder(basicSelectStatement(entity.javaClass)).append(primaryKeySelectionClause(entity.javaClass))
 
         val conn = sql2o.open()
