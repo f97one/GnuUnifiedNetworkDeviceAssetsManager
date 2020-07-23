@@ -10,10 +10,7 @@ import java.sql.Date
 import java.text.SimpleDateFormat
 import java.time.Instant
 import javax.sql.DataSource
-import kotlin.test.Test
-import kotlin.test.assertEquals
-import kotlin.test.assertNull
-import kotlin.test.assertTrue
+import kotlin.test.*
 
 class AppUserDaoTest {
 
@@ -194,5 +191,46 @@ class AppUserDaoTest {
 
         val lst = AppUserDao().findAll(AppUser::class.java)
         assertEquals(0, lst.size)
+    }
+
+    @Test
+    fun findsByProvidedUsername() {
+        // データを追加
+        val s1 = """
+            insert into app_user (username, password, display_name, email, passwd_last_modified, joined_org_id, role_id)
+            values ('testsan2', 'P@ssw0rd', 'てすとさん２', 'testsan2@example.com', '2020-07-12 19:37:00', null, null)
+        """.trimIndent()
+        val s2 = """
+            insert into app_user (username, password, display_name, email, passwd_last_modified, joined_org_id, role_id)
+            values ('testsan', 'P@ssw0rd', 'てすとさん', 'testsan@example.com', '2020-07-12 21:35:00', null, null)
+        """.trimIndent()
+        val fix = listOf(s1, s2)
+        GenericSqlExecutor(ds).executeRawSql(fix)
+
+        val userOpt = AppUserDao().loadByUsername("testsan")
+        assertTrue(userOpt.isPresent)
+        val user = userOpt.get()
+        assertEquals("P@ssw0rd", user.password)
+        assertEquals("てすとさん", user.displayName)
+        assertEquals("testsan@example.com", user.email)
+        assertEquals(SimpleDateFormat("yyyy-MM-dd HH:mm:ss").parse("2020-07-12 21:35:00"), user.passwdLastModified)
+    }
+
+    @Test
+    fun returnsEmptyIfUsernameNotFound() {
+        // データを追加
+        val s1 = """
+            insert into app_user (username, password, display_name, email, passwd_last_modified, joined_org_id, role_id)
+            values ('testsan2', 'P@ssw0rd', 'てすとさん２', 'testsan2@example.com', '2020-07-12 19:37:00', null, null)
+        """.trimIndent()
+        val s2 = """
+            insert into app_user (username, password, display_name, email, passwd_last_modified, joined_org_id, role_id)
+            values ('testsan', 'P@ssw0rd', 'てすとさん', 'testsan@example.com', '2020-07-12 21:35:00', null, null)
+        """.trimIndent()
+        val fix = listOf(s1, s2)
+        GenericSqlExecutor(ds).executeRawSql(fix)
+
+        val userOpt = AppUserDao().loadByUsername("testsan3")
+        assertFalse(userOpt.isPresent)
     }
 }
