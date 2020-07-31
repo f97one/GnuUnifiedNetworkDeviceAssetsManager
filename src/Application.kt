@@ -18,6 +18,7 @@ import com.fasterxml.jackson.databind.*
 import io.ktor.jackson.*
 import io.ktor.server.netty.EngineMain
 import io.ktor.util.KtorExperimentalAPI
+import net.formula97.webapps.dao.AppUserDao
 import net.formula97.webapps.dao.config.DataSourceCreator
 import net.formula97.webapps.dao.config.DbConnectionConfig
 import org.flywaydb.core.Flyway
@@ -51,6 +52,28 @@ fun Application.module(testing: Boolean = false) {
     }
 
     install(Authentication) {
+        form("login") {
+            skipWhen {call -> call.sessions.get<AuthSession>() != null}
+
+            userParamName = "username"
+            passwordParamName = "password"
+            // todo 認証失敗時のリダイレクト先を決める
+            challenge("/autherror")
+            // todo DB認証の処理を書く
+            validate { cred ->
+                val userOpt = AppUserDao().loadByUsername(cred.name)
+                if (userOpt.isPresent) {
+                    val u = userOpt.get()
+                    if (u.isPasswordValid(cred.password)) {
+                        return@validate UserIdPrincipal(u.username)
+                    } else {
+                        return@validate null
+                    }
+                } else {
+                    return@validate null
+                }
+            }
+        }
     }
 
     install(ContentNegotiation) {
