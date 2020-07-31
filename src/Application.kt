@@ -94,6 +94,8 @@ fun Application.module(testing: Boolean = false) {
         // Static feature. Try to access `/static/ktor_logo.svg`
         static("/static") {
             resources("static")
+            files("js")
+            files("css")
         }
 
         get("/session/increment") {
