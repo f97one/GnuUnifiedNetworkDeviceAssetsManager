@@ -46,9 +46,9 @@ data class DbConnectionConfig(
                 dbPasswd = ""
             } else {
                 driverClassName = conf.propertyOrNull("settings.db.driverClassName")?.getString() ?: org.postgresql.Driver::class.java.name
-                jdbcUrl = conf.propertyOrNull("settings.db.jdbcUrl")?.getString() ?: "jdbc:postgresql://localhost:5432/klassify_db"
-                dbUser = conf.propertyOrNull("settings.db.dbUser")?.getString() ?: "klassify_user"
-                dbPasswd = conf.propertyOrNull("setings.db.dbPasswd")?.getString() ?: "klassify"
+                jdbcUrl = conf.propertyOrNull("settings.db.jdbcUrl")?.getString() ?: "jdbc:postgresql://localhost:5432/g-u-n-d-a-m-db"
+                dbUser = conf.propertyOrNull("settings.db.dbUser")?.getString() ?: "g-u-n-d-a-m-user"
+                dbPasswd = conf.propertyOrNull("settings.db.dbPasswd")?.getString() ?: "g-u-n-d-a-m-user"
             }
 
             return DbConnectionConfig(driverClassName, jdbcUrl, dbUser, dbPasswd)
