@@ -2,7 +2,8 @@ package net.formula97.webapps.entity
 
 import net.formula97.webapps.entity.annotation.FieldMapDefinition
 import net.formula97.webapps.entity.annotation.TableNameDefinition
-import java.util.Date
+import org.mindrot.jbcrypt.BCrypt
+import java.util.*
 
 /**
  * users
@@ -51,4 +52,11 @@ data class AppUser(
     var roleId: Int? = null
 
 ): BaseEntity() {
+    fun isPasswordValid(rawPassword: String): Boolean {
+        return BCrypt.checkpw(rawPassword, this.password)
+    }
+
+    fun storePasswordWithSecure(rawPassword: String) {
+        this.password = BCrypt.hashpw(rawPassword, BCrypt.gensalt())
+    }
 }
