@@ -18,6 +18,7 @@ import com.fasterxml.jackson.databind.*
 import io.ktor.jackson.*
 import io.ktor.server.netty.EngineMain
 import io.ktor.util.KtorExperimentalAPI
+import net.formula97.webapps.controller.loginController
 import net.formula97.webapps.dao.AppUserDao
 import net.formula97.webapps.dao.config.DataSourceCreator
 import net.formula97.webapps.dao.config.DbConnectionConfig
@@ -83,6 +84,7 @@ fun Application.module(testing: Boolean = false) {
     }
 
     routing {
+        loginController()
         get("/") {
             call.respondText("HELLO WORLD!", contentType = ContentType.Text.Plain)
         }
