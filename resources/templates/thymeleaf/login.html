@@ -14,6 +14,9 @@
     <div class="row">
         <h1 class="h1">Login</h1>
     </div>
+    <div class="row bg-warning" th:if="${msg != null}">
+        <span th:text="${msg}">Error!</span>
+    </div>
     <div class="form-group">
         <form method="post" accept-charset="UTF-8" th:action="@{~/login}" th:object="${loginForm}">
             <div class="row">
@@ -23,7 +26,7 @@
             </div>
             <div class="row">
                 <div class="col-lg-6 mx-auto">
-                    <input type="text" maxlength="32" th:field="*{username}" class="form-control" >
+                    <input type="text" name="username" maxlength="32" th:field="*{username}" class="form-control" >
                 </div>
             </div>
             <div class="row default_upper_margin">
@@ -33,7 +36,7 @@
             </div>
             <div class="row">
                 <div class="col-lg-6 mx-auto">
-                    <input type="password" maxlength="32" th:field="*{password}" class="form-control" >
+                    <input type="password" name="password" maxlength="32" th:field="*{password}" class="form-control" >
                 </div>
             </div>
             <div class="row default_upper_margin">
