@@ -8,39 +8,30 @@ import io.ktor.routing.get
 import io.ktor.routing.post
 import io.ktor.routing.route
 import io.ktor.thymeleaf.ThymeleafContent
+import net.formula97.webapps.AppUserPrincipal
 import net.formula97.webapps.controller.form.LoginForm
 import net.formula97.webapps.dao.AppUserDao
 
-@Suppress("UNCHECKED_CAST")
 fun Route.loginController() {
-    route("/login") {
-        get {
+    route {
+        get("/login") {
+            val hasErr = call.parameters["error"] != null
             call.respond(ThymeleafContent("login", mapOf("loginForm" to LoginForm())))
         }
-        post {
-            val loginForm = LoginForm().importParams(call.receiveParameters())
-            val validatorResult = loginForm.validate()
-
-            if (validatorResult.isValid) {
-                val userOpt = AppUserDao().loadByUsername(loginForm.username)
-                if (userOpt.isEmpty) {
-                    call.respond(ThymeleafContent("login",
-                        mapOf("loginForm" to loginForm, "msg" to "ユーザー名、またはパスワードが違います。")
-                    ))
-                } else {
-                    val appUser = userOpt.get()
-                    if (appUser.isPasswordValid(loginForm.password)) {
-                        // todo ダッシュボード画面へリダイレクトさせる処理を書く
-                    } else {
-                        call.respond(ThymeleafContent("login",
-                            mapOf("loginForm" to loginForm, "msg" to "ユーザー名、またはパスワードが違います。")
-                        ))
-                    }
+        get("/logout") {
+            call.sessions.clear<CurrentUserSession>()
+            call.respondRedirect("/")
+        }
+    }
+    authenticate("login") {
+        route("/login") {
+            post {
+                val principal = call.authenticate.principal<AppUserPrincipal>()
+                if (principal != null) {
+                    call.sessions.set(principal.createSession())
+                    // todo リダイレクト先を決める
+                    call.respondRedirect("/dashboards")
                 }
-            } else {
-                call.respond(ThymeleafContent("login",
-                    mapOf("loginForm" to loginForm, "msg" to validatorResult.reason) as Map<String, Any>
-                ))
             }
         }
     }
