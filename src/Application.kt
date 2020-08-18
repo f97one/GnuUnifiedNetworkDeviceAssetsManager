@@ -26,6 +26,8 @@ import org.flywaydb.core.Flyway
 
 fun main(args: Array<String>): Unit = EngineMain.main(args)
 
+const val USER_SESSION_KEY = "USER_SESSION_KEY"
+
 @KtorExperimentalAPI
 @Suppress("unused") // Referenced in application.conf
 @JvmOverloads
@@ -42,8 +44,15 @@ fun Application.module(testing: Boolean = false) {
     }
 
     install(Sessions) {
-        cookie<MySession>("MY_SESSION") {
+        val secretHash = hex("998ed5c9957e79ab8d9a4bbd568db3570b900d854360cc7eec8d1e612b816a3a" +
+                                "f7041ccb21e09cb2ca4220feb66d251258727efc27c9a31e1acb33389a8d8047" +
+                                "e2b56415abc0ba67c25d7dba033479077ea8350413208dfdc8c9ef2a70a5fd6d" +
+                                "775664000b0b76dffbcded738594b8238f6a463187c74b850171b7757c86acec")
+
+        cookie<CurrentUserSession>(USER_SESSION_KEY, SessionStorageMemory()) {
             cookie.extensions["SameSite"] = "lax"
+            cookie.path = "/"
+            transform(SessionTransportTransformerMessageAuthentication(key = secretHash))
         }
     }
 
@@ -54,19 +63,19 @@ fun Application.module(testing: Boolean = false) {
 
     install(Authentication) {
         form("login") {
-            skipWhen {call -> call.sessions.get<AuthSession>() != null}
+            skipWhen {call -> call.sessions.get<CurrentUserSession>() != null}
 
             userParamName = "username"
             passwordParamName = "password"
             // todo 認証失敗時のリダイレクト先を決める
-            challenge("/autherror")
+            challenge("/login?error")
             // todo DB認証の処理を書く
             validate { cred ->
                 val userOpt = AppUserDao().loadByUsername(cred.name)
                 if (userOpt.isPresent) {
                     val u = userOpt.get()
                     if (u.isPasswordValid(cred.password)) {
-                        return@validate UserIdPrincipal(u.username)
+                        return@validate AppUserPrincipal(u)
                     } else {
                         return@validate null
                     }
