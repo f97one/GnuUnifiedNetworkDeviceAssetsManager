@@ -18,7 +18,12 @@ fun Route.loginController() {
             }
 
             val hasErr = call.parameters["error"] != null
-            call.respond(ThymeleafContent("login", mapOf("loginForm" to LoginForm())))
+            val map = mutableMapOf<String, Any>()
+            map["loginForm"] = LoginForm()
+            if (hasErr) {
+                map["msg"] = "ユーザー名、またはパスワードが違います。"
+            }
+            call.respond(ThymeleafContent("login", map))
         }
         get("/logout") {
             call.sessions.clear<CurrentUserSession>()
