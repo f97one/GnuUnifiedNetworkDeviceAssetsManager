@@ -72,7 +72,8 @@ fun Application.module(testing: Boolean = false) {
 
             // 認証失敗時のリダイレクト先をURLで振り分ける
             challenge {
-                if (context.request.path().contains("/login")) {
+                val path = context.request.path()
+                if (path.contains("/login")) {
                     context.respondRedirect("/login?error")
                 } else {
                     context.respondHtmlTemplate(StdPageTemplate("認証エラー"), HttpStatusCode.Unauthorized) {
@@ -99,19 +100,15 @@ fun Application.module(testing: Boolean = false) {
                 }
             }
 
-            // todo DB認証の処理を書く
             validate { cred ->
                 val userOpt = AppUserDao().loadByUsername(cred.name)
                 if (userOpt.isPresent) {
                     val u = userOpt.get()
                     if (u.isPasswordValid(cred.password)) {
                         return@validate AppUserPrincipal(u)
-                    } else {
-                        return@validate null
                     }
-                } else {
-                    return@validate null
                 }
+                return@validate null
             }
         }
     }
@@ -126,30 +123,12 @@ fun Application.module(testing: Boolean = false) {
         loginController()
         dashboardController()
 
-        get("/") {
-            call.respondText("HELLO WORLD!", contentType = ContentType.Text.Plain)
-        }
-
-        get("/html-thymeleaf") {
-            call.respond(ThymeleafContent("index", mapOf("user" to ThymeleafUser(1, "user1"))))
-        }
-
         // Static feature. Try to access `/static/ktor_logo.svg`
         static("/static") {
             resources("static")
             files("js")
             files("css")
         }
-
-//        get("/session/increment") {
-//            val session = call.sessions.get<MySession>() ?: MySession()
-//            call.sessions.set(session.copy(count = session.count + 1))
-//            call.respondText("Counter is ${session.count}. Refresh to increment.")
-//        }
-//
-//        get("/json/jackson") {
-//            call.respond(mapOf("hello" to "world"))
-//        }
     }
 }
 
@@ -162,8 +141,3 @@ fun initDatabase(connectionConfig: DbConnectionConfig) {
         .load()
     flyway.migrate()
 }
-
-data class ThymeleafUser(val id: Int, val name: String)
-
-data class MySession(val count: Int = 0)
-

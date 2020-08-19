@@ -13,6 +13,10 @@ import net.formula97.webapps.controller.form.LoginForm
 fun Route.loginController() {
     route("") {
         get("/login") {
+            if (call.sessions.get<CurrentUserSession>() != null) {
+                return@get call.respondRedirect("/dashboards")
+            }
+
             val hasErr = call.parameters["error"] != null
             call.respond(ThymeleafContent("login", mapOf("loginForm" to LoginForm())))
         }

@@ -3,6 +3,7 @@ package net.formula97.webapps.controller
 import io.ktor.application.*
 import io.ktor.auth.*
 import io.ktor.html.*
+import io.ktor.response.*
 import io.ktor.routing.*
 import io.ktor.sessions.*
 import kotlinx.html.div
@@ -11,9 +12,14 @@ import net.formula97.webapps.CurrentUserSession
 import net.formula97.webapps.controller.page.StdPageTemplate
 
 fun Route.dashboardController() {
-    authenticate("login") {
-        route("/dashboards") {
-            get {
+    route("") {
+        get("/") {
+            val session = call.sessions.get<CurrentUserSession>()
+            val sendTo =  if (session == null) "/login" else "/dashboards"
+            call.respondRedirect(sendTo)
+        }
+        authenticate("login") {
+            get("/dashboards") {
                 val session = call.sessions.get<CurrentUserSession>()
                 call.respondHtmlTemplate(template = StdPageTemplate("Dashboards")) {
                     body {
