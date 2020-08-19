@@ -3,8 +3,8 @@ package net.formula97.webapps.controller.page
 import io.ktor.html.Template
 import kotlinx.html.*
 
-class HeaderFragment(val pageTitle: String): Template<HEAD> {
-    override fun HEAD.aplly() {
+class HeadFragment(val pageTitle: String): Template<HEAD> {
+    override fun HEAD.apply() {
         title { +"$pageTitle | the Gnu Unified Network Device Assets Manager"}
         meta {
             charset = "UTF-8"
