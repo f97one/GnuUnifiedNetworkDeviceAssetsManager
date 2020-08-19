@@ -1,28 +1,30 @@
 package net.formula97.webapps
 
+import com.fasterxml.jackson.databind.SerializationFeature
 import io.ktor.application.*
-import io.ktor.response.*
-import io.ktor.request.*
-import io.ktor.routing.*
-import io.ktor.http.*
-import io.ktor.thymeleaf.Thymeleaf
-import io.ktor.thymeleaf.ThymeleafContent
-import org.thymeleaf.templateresolver.ClassLoaderTemplateResolver
-import io.ktor.content.*
-import io.ktor.http.content.*
-import io.ktor.sessions.*
-import io.ktor.features.*
-import org.slf4j.event.*
 import io.ktor.auth.*
-import com.fasterxml.jackson.databind.*
+import io.ktor.features.*
+import io.ktor.html.*
+import io.ktor.http.*
+import io.ktor.http.content.*
 import io.ktor.jackson.*
-import io.ktor.server.netty.EngineMain
-import io.ktor.util.KtorExperimentalAPI
+import io.ktor.request.*
+import io.ktor.response.*
+import io.ktor.routing.*
+import io.ktor.server.netty.*
+import io.ktor.sessions.*
+import io.ktor.thymeleaf.*
+import io.ktor.util.*
+import kotlinx.html.*
 import net.formula97.webapps.controller.loginController
+import net.formula97.webapps.controller.page.StdPageTemplate
+import net.formula97.webapps.controller.dashboardController
 import net.formula97.webapps.dao.AppUserDao
 import net.formula97.webapps.dao.config.DataSourceCreator
 import net.formula97.webapps.dao.config.DbConnectionConfig
 import org.flywaydb.core.Flyway
+import org.slf4j.event.Level
+import org.thymeleaf.templateresolver.ClassLoaderTemplateResolver
 
 fun main(args: Array<String>): Unit = EngineMain.main(args)
 
@@ -67,8 +69,36 @@ fun Application.module(testing: Boolean = false) {
 
             userParamName = "username"
             passwordParamName = "password"
-            // todo 認証失敗時のリダイレクト先を決める
-            challenge("/login?error")
+
+            // 認証失敗時のリダイレクト先をURLで振り分ける
+            challenge {
+                if (context.request.path().contains("/login")) {
+                    context.respondRedirect("/login?error")
+                } else {
+                    context.respondHtmlTemplate(StdPageTemplate("認証エラー"), HttpStatusCode.Unauthorized) {
+                        body {
+                            h2(classes = "h2") {
+                                +"認証エラー"
+                            }
+                            div(classes = "row") {
+                                div(classes = "col-lg-12 alert alert-warning") {
+                                    +"あなたが開こうとしたページは許可されていません。"
+                                }
+                            }
+                            div(classes = "row") {
+                                div(classes = "col-lg-12") {
+                                    p(classes = "text-center mx-auto") {
+                                        a(href = "/") {
+                                            +"トップページへ"
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
             // todo DB認証の処理を書く
             validate { cred ->
                 val userOpt = AppUserDao().loadByUsername(cred.name)
@@ -94,6 +124,8 @@ fun Application.module(testing: Boolean = false) {
 
     routing {
         loginController()
+        dashboardController()
+
         get("/") {
             call.respondText("HELLO WORLD!", contentType = ContentType.Text.Plain)
         }
@@ -109,15 +141,15 @@ fun Application.module(testing: Boolean = false) {
             files("css")
         }
 
-        get("/session/increment") {
-            val session = call.sessions.get<MySession>() ?: MySession()
-            call.sessions.set(session.copy(count = session.count + 1))
-            call.respondText("Counter is ${session.count}. Refresh to increment.")
-        }
-
-        get("/json/jackson") {
-            call.respond(mapOf("hello" to "world"))
-        }
+//        get("/session/increment") {
+//            val session = call.sessions.get<MySession>() ?: MySession()
+//            call.sessions.set(session.copy(count = session.count + 1))
+//            call.respondText("Counter is ${session.count}. Refresh to increment.")
+//        }
+//
+//        get("/json/jackson") {
+//            call.respond(mapOf("hello" to "world"))
+//        }
     }
 }
 

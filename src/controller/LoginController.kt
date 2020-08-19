@@ -1,19 +1,17 @@
 package net.formula97.webapps.controller
 
-import io.ktor.application.call
-import io.ktor.request.receiveParameters
-import io.ktor.response.respond
-import io.ktor.routing.Route
-import io.ktor.routing.get
-import io.ktor.routing.post
-import io.ktor.routing.route
-import io.ktor.thymeleaf.ThymeleafContent
+import io.ktor.application.*
+import io.ktor.auth.*
+import io.ktor.response.*
+import io.ktor.routing.*
+import io.ktor.sessions.*
+import io.ktor.thymeleaf.*
 import net.formula97.webapps.AppUserPrincipal
+import net.formula97.webapps.CurrentUserSession
 import net.formula97.webapps.controller.form.LoginForm
-import net.formula97.webapps.dao.AppUserDao
 
 fun Route.loginController() {
-    route {
+    route("") {
         get("/login") {
             val hasErr = call.parameters["error"] != null
             call.respond(ThymeleafContent("login", mapOf("loginForm" to LoginForm())))
@@ -26,10 +24,10 @@ fun Route.loginController() {
     authenticate("login") {
         route("/login") {
             post {
-                val principal = call.authenticate.principal<AppUserPrincipal>()
+                val principal = call.authentication.principal<AppUserPrincipal>()
                 if (principal != null) {
                     call.sessions.set(principal.createSession())
-                    // todo リダイレクト先を決める
+                    // ダッシュボード画面へリダイレクト
                     call.respondRedirect("/dashboards")
                 }
             }
