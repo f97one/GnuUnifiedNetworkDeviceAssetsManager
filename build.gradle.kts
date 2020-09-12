@@ -8,6 +8,7 @@ val h2Version: String by project
 val hikariVersion: String by project
 val sql2oVersion: String by project
 val jbcryptVersion: String by project
+val yaviVersion: String by project
 
 plugins {
     application
@@ -56,6 +57,9 @@ dependencies {
     //   Sql2o
     implementation("org.sql2o:sql2o:$sql2oVersion")
     implementation("org.sql2o.extensions:sql2o-postgres:$sql2oVersion")
+
+    // YAVU the validator
+    implementation("am.ik.yavi:yavi:$yaviVersion")
 }
 
 kotlin.sourceSets["main"].kotlin.srcDirs("src")
