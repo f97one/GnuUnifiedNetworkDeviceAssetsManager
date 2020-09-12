@@ -1,26 +1,38 @@
 package net.formula97.webapps.controller.form
 
-import io.ktor.http.Parameters
+import am.ik.yavi.builder.ValidatorBuilder
+import am.ik.yavi.builder.konstraint
+import am.ik.yavi.core.Validator
+import io.ktor.http.*
 
 data class LoginForm(
     var username: String = "",
     var password: String = ""
-): ValidatorFunction, ParameterImportable<LoginForm> {
-    override fun validate(): ValidationResult {
-        if (username.length > 32 || username.isEmpty()) {
-            return ValidationResult(reason = "ユーザー名は1文字以上32文字以下でなければなりません。")
-        }
-        if (password.length > 32 || password.isEmpty()) {
-            return ValidationResult(reason = "パスワードは1文字以上32文字以下でなければなりません。")
-        }
-
-        return ValidationResult(isValid = true)
-    }
+): ValidatorFunction<LoginForm>, ParameterImportable<LoginForm> {
 
     override fun importParams(params: Parameters): LoginForm {
         this.username = params["username"] ?: ""
         this.password = params["password"] ?: ""
 
         return this
+    }
+
+    override fun getValidator(): Validator<LoginForm> {
+        return ValidatorBuilder.of<LoginForm>()
+            .konstraint(LoginForm::username) {
+                notBlank()
+                    .greaterThan(0)
+                    .lessThanOrEqual(32)
+            }
+            .konstraint(LoginForm::password) {
+                notBlank()
+                    .greaterThan(0)
+                    .lessThanOrEqual(32)
+            }
+            .build()
+    }
+
+    override fun compileResult(): ValidationResult {
+        return ValidationResult.fromViolations(getValidator().validate(this))
     }
 }
