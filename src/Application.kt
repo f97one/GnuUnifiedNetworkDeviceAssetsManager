@@ -15,10 +15,13 @@ import io.ktor.server.netty.*
 import io.ktor.sessions.*
 import io.ktor.thymeleaf.*
 import io.ktor.util.*
-import kotlinx.html.*
+import kotlinx.html.a
+import kotlinx.html.div
+import kotlinx.html.h2
+import kotlinx.html.p
+import net.formula97.webapps.controller.dashboardController
 import net.formula97.webapps.controller.loginController
 import net.formula97.webapps.controller.page.StdPageTemplate
-import net.formula97.webapps.controller.dashboardController
 import net.formula97.webapps.dao.AppUserDao
 import net.formula97.webapps.dao.config.DataSourceCreator
 import net.formula97.webapps.dao.config.DbConnectionConfig
