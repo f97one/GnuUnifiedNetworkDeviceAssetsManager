@@ -1,14 +1,15 @@
 package net.formula97.webapps.controller.page
 
-import io.ktor.html.Template
+import io.ktor.html.*
 import kotlinx.html.*
+import net.formula97.webapps.CurrentUserSession
 
-class StickyMenuFragment: Template<DIV> {
+class StickyMenuFragment(private val session: CurrentUserSession?): Template<DIV> {
     override fun DIV.apply() {
         header(classes = "sticky-top") {
             nav(classes = "navbar navbar-expand-lg navbar-light bg-light") {
                 a(classes = "navbar-brand", href = "#") {
-                    +"Navbar"
+                    +"the Gnu Unified Network Device Assets Manager"
                 }
                 button(classes = "navbar-toggler", type = ButtonType.button) {
                     attributes["data-toggle"] = "collapse"
@@ -24,7 +25,7 @@ class StickyMenuFragment: Template<DIV> {
 
                     ul(classes = "navbar-nav mr-auto") {
                         li(classes = "nav-item active") {
-                            a(classes = "nav-link", href = "#") {
+                            a(classes = "nav-link", href = "/dashboards") {
                                 +"Home"
                                 span(classes = "sr-only") {
                                     +"(Current)"
@@ -36,29 +37,6 @@ class StickyMenuFragment: Template<DIV> {
                                 +"Link"
                             }
                         }
-                        li(classes = "nav-link dropdown") {
-                            a(classes = "nav-link dropdown-toggle", href = "#") {
-                                id = "navbarDropdown"
-                                attributes["role"] = "button"
-                                attributes["data-toggle"] = "dropdown"
-                                attributes["aria-haspopup"] = "true"
-                                attributes["aria-expanded"] = "false"
-                                +"Dropdown"
-                            }
-                            div(classes = "dropdown-menu") {
-                                attributes["aria-labelledby"] = "navbarDropdown"
-                                a(classes = "dropdown-item", href = "#") {
-                                    +"Action"
-                                }
-                                a(classes = "dropdown-item", href = "#") {
-                                    +"Another action"
-                                }
-                                div(classes = "dropdown-divider") {}
-                                a(classes = "dropdown-item", href = "#") {
-                                    +"Something else here"
-                                }
-                            }
-                        }
                         li(classes = "nav-item") {
                             a(classes = "nav-link disabled", href = "#") {
                                 +"Disabled"
@@ -66,13 +44,36 @@ class StickyMenuFragment: Template<DIV> {
                         }
                     }
 
-                    form(classes = "form-inline my-2 my-lg-0") {
-                        input(type = InputType.search, classes = "form-control mr-sm-2") {
-                            attributes["placeholder"] = "Search"
-                            attributes["aria-label"] = "Search"
-                        }
-                        button(type = ButtonType.submit, classes = "btn btn-outline-success my-2 my-sm-0") {
-                            +"Search"
+                    // 画面右へ
+                    ul(classes ="navbar-nav") {
+                        if (session == null) {
+                            li(classes = "nav-iyem") {
+                                a(classes = "nav-link", href = "/login") {
+                                    +"ログイン"
+                                }
+                            }
+                        } else {
+                            val dispName = session.displayName ?: session.username
+                            li(classes = "nav-link dropdown-right") {
+                                a(classes = "nav-link dropdown-toggle", href = "#") {
+                                    id = "navbarDropdown"
+                                    attributes["role"] = "button"
+                                    attributes["data-toggle"] = "dropdown"
+                                    attributes["aria-haspopup"] = "true"
+                                    attributes["aria-expanded"] = "false"
+                                    +dispName
+                                }
+                                div(classes = "dropdown-menu dropdown-menu-right") {
+                                    attributes["aria-labelledby"] = "navbarDropdown"
+                                    a(classes = "dropdown-item", href = "#") {
+                                        +"設定"
+                                    }
+                                    div(classes = "dropdown-divider") {}
+                                    a(classes = "dropdown-item", href = "/logout") {
+                                        +"ログアウト"
+                                    }
+                                }
+                            }
                         }
                     }
                 }
