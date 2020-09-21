@@ -21,7 +21,7 @@ fun Route.dashboardController() {
         authenticate("login") {
             get("/dashboards") {
                 val session = call.sessions.get<CurrentUserSession>()
-                call.respondHtmlTemplate(template = StdPageTemplate("Dashboards")) {
+                call.respondHtmlTemplate(template = StdPageTemplate("Dashboards", session)) {
                     body {
                         h2(classes = "h2") {
                             +"ダッシュボード"

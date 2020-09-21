@@ -76,7 +76,7 @@ fun Application.module(testing: Boolean = false) {
                 if (path.contains("/login")) {
                     context.respondRedirect("/login?error")
                 } else {
-                    context.respondHtmlTemplate(StdPageTemplate("認証エラー"), HttpStatusCode.Unauthorized) {
+                    context.respondHtmlTemplate(StdPageTemplate("認証エラー", null), HttpStatusCode.Unauthorized) {
                         body {
                             h2(classes = "h2") {
                                 +"認証エラー"
