@@ -3,9 +3,12 @@ package net.formula97.webapps.dao
 import net.formula97.webapps.dao.config.DataSourceCreator
 import net.formula97.webapps.dao.config.DbConnectionConfig
 import net.formula97.webapps.entity.AppUser
+import net.formula97.webapps.entity.UserAuthority
 import org.flywaydb.core.Flyway
+import org.ietf.jgss.GSSException
 import org.junit.After
 import org.junit.Before
+import org.junit.BeforeClass
 import java.sql.Date
 import java.text.SimpleDateFormat
 import java.time.Instant
@@ -14,27 +17,37 @@ import kotlin.test.*
 
 class AppUserDaoTest {
 
-    private lateinit var ds: DataSource
+    companion object {
+        private lateinit var ds: DataSource
+
+        @JvmStatic
+        @BeforeClass
+        fun init() {
+            val connConf = DbConnectionConfig(
+                driverClassName = org.h2.Driver::class.java.name,
+                jdbcUrl = "jdbc:h2:mem:g-u-n-d-a-m-db;MODE=PostgreSQL;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE",
+                username = "SA",
+                password = ""
+            )
+            ds = DataSourceCreator.create(connConf)
+            val flyway = Flyway.configure()
+                .dataSource(ds)
+                .baselineOnMigrate(false)
+                .load()
+            flyway.migrate()
+        }
+    }
 
     @Before
     fun setUp() {
-        val connConf = DbConnectionConfig(
-            driverClassName = org.h2.Driver::class.java.name,
-            jdbcUrl = "jdbc:h2:mem:g-u-n-d-a-m-db;MODE=PostgreSQL;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE",
-            username = "SA",
-            password = ""
-        )
-        ds = DataSourceCreator.create(connConf)
-        val flyway = Flyway.configure()
-            .dataSource(ds)
-            .baselineOnMigrate(false)
-            .load()
-        flyway.migrate()
     }
 
     @After
     fun tearDown() {
         val exec = GenericSqlExecutor(ds)
+
+        val delAuthority = "delete from user_authority"
+        exec.executeRawSql(delAuthority)
 
         val delAll = "delete from app_user"
         val result1 = exec.executeRawSql(delAll)
@@ -150,8 +163,10 @@ class AppUserDaoTest {
             insert into app_user (username, password, display_name, email, passwd_last_modified, joined_org_id, role_id)
             values ('testsan', 'P@ssw0rd', 'てすとさん', 'testsan@example.com', '2020-07-12 21:35:00', null, null)
         """.trimIndent()
-        val fix = listOf(s1, s2)
-        GenericSqlExecutor(ds).executeRawSql(fix)
+        val exec = GenericSqlExecutor(ds)
+        exec.executeRawSql(s1)
+        exec.executeRawSql(s2)
+
         val appUser = AppUser(userId = 2)
         val dao = AppUserDao()
         val result = dao.deleteOneByPK(appUser)
@@ -182,8 +197,12 @@ class AppUserDaoTest {
             insert into app_user (username, password, display_name, email, passwd_last_modified, joined_org_id, role_id)
             values ('testsan', 'P@ssw0rd', 'てすとさん', 'testsan@example.com', '2020-07-12 21:35:00', null, null)
         """.trimIndent()
-        val fix = listOf(s1, s2)
-        GenericSqlExecutor(ds).executeRawSql(fix)
+        val exec = GenericSqlExecutor(ds)
+        exec.executeRawSql(s1)
+        exec.executeRawSql(s2)
+
+        val r = UserAuthorityDao().deleteAll(UserAuthority::class.java)
+        assertTrue(r.success)
 
         val result = AppUserDao().deleteAll(AppUser::class.java)
         assertTrue(result.success)
@@ -204,8 +223,9 @@ class AppUserDaoTest {
             insert into app_user (username, password, display_name, email, passwd_last_modified, joined_org_id, role_id)
             values ('testsan', 'P@ssw0rd', 'てすとさん', 'testsan@example.com', '2020-07-12 21:35:00', null, null)
         """.trimIndent()
-        val fix = listOf(s1, s2)
-        GenericSqlExecutor(ds).executeRawSql(fix)
+        val exec = GenericSqlExecutor(ds)
+        exec.executeRawSql(s1)
+        exec.executeRawSql(s2)
 
         val userOpt = AppUserDao().loadByUsername("testsan")
         assertTrue(userOpt.isPresent)
@@ -227,8 +247,9 @@ class AppUserDaoTest {
             insert into app_user (username, password, display_name, email, passwd_last_modified, joined_org_id, role_id)
             values ('testsan', 'P@ssw0rd', 'てすとさん', 'testsan@example.com', '2020-07-12 21:35:00', null, null)
         """.trimIndent()
-        val fix = listOf(s1, s2)
-        GenericSqlExecutor(ds).executeRawSql(fix)
+        val exec = GenericSqlExecutor(ds)
+        exec.executeRawSql(s1)
+        exec.executeRawSql(s2)
 
         val userOpt = AppUserDao().loadByUsername("testsan3")
         assertFalse(userOpt.isPresent)
