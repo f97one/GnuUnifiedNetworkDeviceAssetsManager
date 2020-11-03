@@ -58,7 +58,7 @@ dependencies {
     implementation("org.sql2o:sql2o:$sql2oVersion")
     implementation("org.sql2o.extensions:sql2o-postgres:$sql2oVersion")
 
-    // YAVU the validator
+    // YAVI the validator
     implementation("am.ik.yavi:yavi:$yaviVersion")
 }
 
